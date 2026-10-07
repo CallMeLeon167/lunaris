@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support & Example — Lunaris Documentation</title>
+  <meta name="description" content="Lunaris support classes, an end-to-end products example, and the list of known quirks and limitations.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html" class="is-active">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Operations</span></div>
+          <h1>Support &amp; Example</h1>
+          <p class="lead">A tour of the support utilities — <code>Collection</code>, <code>Root</code> and <code>base_path()</code> — followed by a complete end-to-end feature and the framework’s known quirks.</p>
+
+
+          <h2><code>Collection</code></h2>
+          <p>A lightweight array bag with magic accessors:</p>
+<pre><code class="language-php">use System\Support\Collection;
+
+$bag = Collection::make(["name" =&gt; "Lunaris"]);
+$bag-&gt;set("version", "0.2.0");
+$bag-&gt;get("name");        // "Lunaris"
+$bag-&gt;has("version");     // true
+$bag-&gt;remove("version");
+$bag-&gt;all();              // ["name" =&gt; "Lunaris"]</code></pre>
+          <p>Magic property access also works: <code>$bag-&gt;name</code>, <code>isset($bag-&gt;name)</code>.</p>
+
+          <h2><code>Root</code> &amp; <code>base_path()</code></h2>
+          <p>The project root path is registered at boot; use <code>base_path()</code> to build root-anchored paths:</p>
+<pre><code class="language-php">base_path();                    // &lt;project root&gt;
+base_path("config");            // &lt;project root&gt;/config
+base_path("views/welcome.php"); // &lt;project root&gt;/views/welcome.php</code></pre>
+
+          <h2>End-to-end example</h2>
+          <p>A small “products” feature: list products (GET) and create one via a form (POST) with CSRF protection, validation, a flash message and logging.</p>
+
+          <h3>1. Routes — <code>routes/web.php</code></h3>
+<pre><code class="language-php">&lt;?php
+
+use App\Actions\ListProducts;
+use App\Actions\CreateProduct;
+use System\Routing\Route;
+
+Route::get("/products", ListProducts::class)-&gt;name("products.index");
+Route::post("/products", CreateProduct::class)-&gt;name("products.store");</code></pre>
+
+          <h3>2. List action — <code>app/Actions/ListProducts.php</code></h3>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+
+class ListProducts extends Action {
+    public function middlewares() {
+        return [];
+    }
+
+    public function main() {
+        $products = [
+            ["name" =&gt; "Espresso Maker", "price" =&gt; 100],
+            ["name" =&gt; "Ceramic Mug",    "price" =&gt; 50],
+        ];
+
+        return response()
+                    -&gt;view("products/index", ["products" =&gt; $products])
+                    -&gt;render();
+    }
+}</code></pre>
+
+          <h3>3. Create action — <code>app/Actions/CreateProduct.php</code></h3>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+use System\Http\Middlewares\CsrfMiddleware;
+use System\Http\Traits\Validateable;
+use System\Logs\Log;
+use System\Support\Flash;
+
+class CreateProduct extends Action {
+    use Validateable;
+
+    public function middlewares() {
+        return [CsrfMiddleware::class];
+    }
+
+    public function main() {
+        $this-&gt;vfield("name", $this-&gt;input("name"))-&gt;required()-&gt;min_length(2);
+        $this-&gt;vfield("price", $this-&gt;input("price"))-&gt;required();
+
+        if (!$this-&gt;validated()) {
+            Flash::error($this-&gt;errors());
+            return response()-&gt;redirect(route("products.index"));
+        }
+
+        Log::info("Product {name} created", ["name" =&gt; $this-&gt;input("name")]);
+        Flash::success(["Product created!"]);
+
+        return response()-&gt;redirect(route("products.index"));
+    }
+}</code></pre>
+
+          <h3>4. View — <code>views/products/index.php</code></h3>
+<pre><code class="language-php">&lt;?php $template-&gt;extends("layouts/app") ?&gt;
+
+&lt;?php $template-&gt;section("content") ?&gt;
+
+&lt;h1&gt;Products&lt;/h1&gt;
+
+&lt;?php Flash::render("success", '&lt;p class="flash"&gt;@message&lt;/p&gt;') ?&gt;
+&lt;?php Flash::render("error", '&lt;p class="flash flash-error"&gt;@message&lt;/p&gt;') ?&gt;
+
+&lt;ul&gt;
+    &lt;?php foreach ($products as $product): ?&gt;
+        &lt;li&gt;&lt;?= htmlspecialchars($product["name"]) ?&gt; — $&lt;?= $product["price"] ?&gt;&lt;/li&gt;
+    &lt;?php endforeach; ?&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Add a product&lt;/h2&gt;
+&lt;form method="POST" action="&lt;?= route("products.store") ?&gt;"&gt;
+    &lt;?= csrf_field() ?&gt;
+    &lt;label&gt;Name &lt;input type="text" name="name"&gt;&lt;/label&gt;
+    &lt;label&gt;Price &lt;input type="number" name="price"&gt;&lt;/label&gt;
+    &lt;button&gt;Create&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;?php $template-&gt;endSection(); ?&gt;</code></pre>
+          <p>That’s the whole request cycle: route → middleware (<code>CsrfMiddleware</code>) → action → validation → flash → redirect → rendered view.</p>
+
+          <h2>Known quirks &amp; limitations</h2>
+          <p>Intentional or current behaviours that differ from what you might expect from a mature framework — verified against the source:</p>
+          <ol>
+            <li><strong>Unmatched placeholders remain in URLs</strong> — <code>route($name, $params)</code> doesn’t clean up <code>{param}</code> tokens you didn’t supply.</li>
+            <li><strong><code>Session::get()</code> / <code>Session::has()</code> return <code>false</code></strong> instead of <code>null</code> for missing keys.</li>
+            <li><strong><code>Action::data($key)</code> always wraps the value</strong> — a missing key yields <code>Str(null)</code>, so <code>-&gt;int()</code> produces <code>0</code>, not <code>null</code>.</li>
+            <li><strong>No global <code>view()</code> helper</strong> — render views through <code>response()-&gt;view(...)-&gt;render()</code>.</li>
+            <li><strong>View responses have a limited status API</strong> — <code>status()</code>/<code>header()</code> on the response are ignored; the renderer only accepts the three <code>Error</code> enum values.</li>
+            <li><strong>Middlewares and actions are instantiated via <code>new</code></strong> — no DI container, no constructor injection.</li>
+            <li><strong>No database layer yet</strong> — MariaDB/MySQL is provisioned in Docker, but the framework ships no query builder/ORM. <a href="../atlas.html">Atlas</a> is on the way.</li>
+            <li><strong>No auth, caching, service providers or asset pipeline</strong> — sessions rely on native PHP session handling.</li>
+            <li><strong><code>Route</code> is <code>final</code> with static state</strong> — not instance-scoped; a non-issue under per-request PHP processes.</li>
+            <li><strong>Log error-message typo</strong> — “nor found” should read “not found” (cosmetic only).</li>
+          </ol>
+
+          <h2>Contributing</h2>
+          <p>
+            Contributions are welcome — bug fixes, features and docs. The project uses a
+            three-branch model: <code>develop</code> (active dev) → <code>stage</code>
+            (pre-production) → <code>main</code> (production); topic branches
+            (<code>feature/*</code>, <code>fix/*</code>, <code>docs/*</code>) always fork from
+            <code>develop</code>.
+          </p>
+          <p>See <a href="https://codeberg.org/lunarisphp/lunaris/src/branch/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">CONTRIBUTING.md</a> for the full workflow.</p>
+
+          <h2>License</h2>
+          <p>MIT — see <code>composer.json</code>.</p>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="cli.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Console (CLI)</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

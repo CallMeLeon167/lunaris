@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Middlewares & Security — Lunaris Documentation</title>
+  <meta name="description" content="Guard Lunaris actions with onion-style middlewares, CSRF protection, bcrypt hashing and AES-256-GCM encryption.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html" class="is-active">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Core</span></div>
+          <h1>Middlewares &amp; Security</h1>
+          <p class="lead">Middlewares guard routes before <code>main()</code> runs. They execute in the order returned by <code>middlewares()</code>, using an onion-style pipeline — and Lunaris ships the security primitives you need alongside them.</p>
+
+
+          <h2>The interface</h2>
+          <p>Every middleware implements one method:</p>
+<pre><code class="language-php">interface IMiddleware {
+    public function handle($request, $next);
+}</code></pre>
+
+          <h3>A complete middleware</h3>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Middlewares;
+
+use System\Routing\IMiddleware;
+
+class LengthGuard implements IMiddleware {
+    public function handle($request, $next) {
+        $value = $request-&gt;get("length");
+
+        if ((int)$value &lt;= 20) {
+            throw new Exception("Length is less than 21");
+        }
+
+        return $next($request); // pass to the next layer
+    }
+}</code></pre>
+          <ul>
+            <li><code>$request</code> is <strong>the action instance itself</strong>, so you can inspect input, headers, <code>$_FILES</code>, etc.</li>
+            <li>Call <code>$next($request)</code> to continue along the pipeline.</li>
+            <li>To <strong>short-circuit</strong> a request, throw an exception (e.g. <code>forbidden()</code>, <code>notfound()</code>), return early, or emit a response directly.</li>
+            <li>Middleware classes are instantiated with plain <code>new</code> — there is no DI container, so constructor dependencies can’t be auto-injected.</li>
+          </ul>
+
+          <h2>Applying middlewares to an action</h2>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+use App\Middlewares\IdsGuard;
+use App\Middlewares\LengthGuard;
+
+class AboutAction extends Action {
+    public function middlewares() {
+        return [
+            IdsGuard::class,
+            LengthGuard::class
+        ];
+    }
+
+    public function main(array $params) {
+        return response()-&gt;json([
+            "params" =&gt; $params,
+            "all"    =&gt; $this-&gt;all(),
+        ]);
+    }
+}</code></pre>
+
+          <h3>How the pipeline works</h3>
+          <p><code>System\Routing\MiddlewarePipeline</code> composes the onion using <code>array_reduce</code> on the reversed middleware list, wrapping the destination closure (which calls <code>main()</code>):</p>
+<pre><code class="language-php">$pipeline = new MiddlewarePipeline($middlewares);
+$result = $pipeline-&gt;handle($instance, function($request) use ($instance, $params) {
+    return $instance-&gt;main($params);
+});
+echo $result;</code></pre>
+
+          <h2>Built-in middleware: CsrfMiddleware</h2>
+          <p><code>System\Http\Middlewares\CsrfMiddleware</code> protects state-changing requests. On <code>POST</code> / <code>PUT</code> / <code>PATCH</code> / <code>DELETE</code> it validates a CSRF token sent either as <code>$_POST['_token']</code> or the <code>X-CSRF-TOKEN</code> header, throwing <code>ForbiddenException</code> on failure.</p>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+use System\Http\Middlewares\CsrfMiddleware;
+
+class SubmitAction extends Action {
+    public function middlewares() {
+        return [CsrfMiddleware::class];
+    }
+
+    public function main() {
+        return response()-&gt;text("Saved!");
+    }
+}</code></pre>
+          <p>Generate the hidden input for forms with the <code>csrf_field()</code> helper:</p>
+<pre><code class="language-html">&lt;form method="POST" action="&lt;?= route("submit") ?&gt;"&gt;
+    &lt;?= csrf_field() ?&gt;
+    &lt;input type="text" name="name"&gt;
+    &lt;button&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+          <h2>Hashing passwords</h2>
+          <p><code>System\Security\Hash</code> wraps PHP’s <code>password_*</code> functions (bcrypt via <code>PASSWORD_DEFAULT</code>):</p>
+<pre><code class="language-php">use System\Security\Hash;
+
+$hash = Hash::make("secret-pass");     // bcrypt hash
+Hash::verify("secret-pass", $hash);    // true
+Hash::needsRehash($hash);              // false (rehash when true)</code></pre>
+
+          <h2>Encryption</h2>
+          <p><code>System\Security\Crypt</code> provides authenticated symmetric encryption via <a href="https://github.com/paragonie/defuse-php-encryption" target="_blank" rel="noopener noreferrer">defuse/php-encryption</a> (AES-256-GCM), keyed by the <code>APP_KEY</code> in your config:</p>
+<pre><code class="language-php">use System\Security\Crypt;
+
+$ciphertext = Crypt::encrypt("sensitive data");
+$plaintext  = Crypt::decrypt($ciphertext);</code></pre>
+          <p>The key is loaded lazily and cached. A missing <code>APP_KEY</code> throws an <code>InvalidArgumentException</code>.</p>
+
+          <h2>CSRF tokens</h2>
+          <p>Session-backed tokens validated with <code>hash_equals</code> (constant-time comparison):</p>
+<pre><code class="language-php">use System\Routing\Csrf;
+
+Csrf::generate();    // create/return the current token
+Csrf::token();       // current token or null
+Csrf::validate($t);  // true if it matches the session token
+Csrf::regenerate();  // rotate the token
+Csrf::destroy();     // remove the token</code></pre>
+
+          <h2>Hardening baked into the framework</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Protection</th><th>Where</th></tr></thead>
+              <tbody>
+                <tr><td>Session cookie hardening</td><td><code>httponly</code>, <code>samesite=Lax</code>, <code>secure</code> on HTTPS — set before <code>session_start()</code> in <code>public/index.php</code>.</td></tr>
+                <tr><td>Server file protection</td><td>Root <code>.htaccess</code> denies web access to <code>.env</code> and <code>*.log</code>.</td></tr>
+                <tr><td>Error display</td><td><code>display_errors=0</code>, errors logged to <code>storage/logs</code>.</td></tr>
+                <tr><td>Host validation</td><td>The <code>server()</code> helper whitelists hostnames and only trusts a sane <code>X-Forwarded-Proto</code>.</td></tr>
+                <tr><td>Escape by default</td><td><code>Flash::render(..., $escape = true)</code> escapes messages; <code>Str::sanitize()</code> for ad-hoc values.</td></tr>
+                <tr><td>Validation</td><td>The <code>Validateable</code> trait — see <a href="validation.html">Validation &amp; Sessions</a>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="actions.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Actions & Responses</span>
+            </a>
+            <a class="page-next" href="views.html">
+              <span class="dir">Next →</span>
+              <span class="title">Views & Templates</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

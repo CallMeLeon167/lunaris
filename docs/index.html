@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Introduction — Lunaris Documentation</title>
+  <meta name="description" content="Lunaris is a minimal, plain-PHP web framework built from scratch. Learn the philosophy behind its action-based, no-magic design.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html" class="is-active">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Getting Started</span></div>
+          <h1>Introduction</h1>
+          <p class="lead">Lunaris is a minimal, plain-PHP web framework built from scratch — an action-based alternative to traditional MVC that keeps every line of your application within reach.</p>
+
+
+          <h2>What is Lunaris?</h2>
+          <p>
+            Lunaris ditches the traditional MVC/controller layout in favour of an
+            <strong>action-based</strong> approach: every route maps directly to an individual
+            <strong>action</strong> class which is responsible for receiving the request,
+            passing it through middlewares, and returning a response.
+          </p>
+          <p>
+            The framework ships no frontend build tools and no template language — views are
+            plain PHP files rendered with an output-buffering engine that supports layouts,
+            sections, partials and components. The entire framework lives in
+            <code>system/</code> at roughly <strong>33 files</strong>, every one of them short
+            enough to read in one sitting.
+          </p>
+
+          <h2>Philosophy: full control over your codebase</h2>
+          <p>Lunaris is built around a simple idea — <strong>the developer should have full control</strong>. That means:</p>
+          <ul>
+            <li><strong>No magic.</strong> No dependency-injection auto-wiring, no hidden service discovery, no compiled template layers. Everything is plain <code>new</code>, static facades, and PHP-native views/sessions.</li>
+            <li><strong>Small, readable source.</strong> Understand, modify or replace any part of the framework — because you can actually finish reading it.</li>
+            <li><strong>Direct PHP.</strong> Actions read <code>$_POST</code>, <code>$_GET</code>, <code>$_FILES</code> and <code>$_SESSION</code> directly. Nothing stands between your code and the language.</li>
+            <li><strong>Nothing enforced but a tiny contract.</strong> An action only has to provide <code>middlewares()</code> and <code>main()</code>. Beyond that, structure your application however you like.</li>
+          </ul>
+
+          <div class="callout">
+            <span class="callout__title">In one sentence</span>
+            <p>Lunaris gives you routing, requests, responses, views, sessions, security, logging and a console — and then gets out of your way.</p>
+          </div>
+
+          <h2>Requirements</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Requirement</th><th>Details</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>PHP 8.3+</strong></td><td>The code uses enums, <code>match</code> expressions and anonymous classes; enforced by <code>"php": "&gt;=8.3"</code> in <code>composer.json</code>.</td></tr>
+                <tr><td><strong>Composer</strong></td><td>Autoloading (<code>System\</code> → <code>system/</code>, <code>App\</code> → <code>app/</code>) and dependencies.</td></tr>
+                <tr><td><strong>Web server</strong></td><td>Apache with <code>mod_rewrite</code>, or any server that can rewrite everything to <code>public/index.php</code>.</td></tr>
+                <tr><td><strong>Optional</strong></td><td>Docker / Podman for the containerized environment.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>The framework at a glance</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Concern</th><th>Where it lives</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>HTTP routes</td><td><code>routes/web.php</code></td></tr>
+                <tr><td>Actions (no controllers)</td><td><code>app/Actions/</code></td></tr>
+                <tr><td>Custom middlewares</td><td><code>app/Middlewares/</code></td></tr>
+                <tr><td>Configuration</td><td><code>config/vars.php</code> + <code>.env</code></td></tr>
+                <tr><td>Views</td><td><code>views/</code> — plain PHP</td></tr>
+                <tr><td>Console commands</td><td><code>routes/console.php</code></td></tr>
+                <tr><td>The framework itself</td><td><code>system/</code> (namespace <code>System\</code>)</td></tr>
+                <tr><td>Logs</td><td><code>storage/logs/YYYY-MM-DD.log</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Where to go next</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Page</th><th>You’ll learn</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><a href="installation.html">Installation</a></td><td>Clone, install, generate your app key, run with Docker.</td></tr>
+                <tr><td><a href="architecture.html">Architecture</a></td><td>The directory structure and the full request lifecycle.</td></tr>
+                <tr><td><a href="routing.html">Routing</a></td><td>Map URIs to actions, name routes, generate URLs.</td></tr>
+                <tr><td><a href="actions.html">Actions &amp; Responses</a></td><td>The action contract, request input, and building responses.</td></tr>
+                <tr><td><a href="views.html">Views</a></td><td>Layouts, sections, partials and components in plain PHP.</td></tr>
+                <tr><td><a href="support.html">Support &amp; Example</a></td><td>A complete end-to-end feature and the known quirks.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-next" href="installation.html">
+              <span class="dir">Next →</span>
+              <span class="title">Installation</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

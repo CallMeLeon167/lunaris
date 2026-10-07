@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas — Coming Soon · Lunaris</title>
+  <meta name="description" content="Atlas, the minimal database engine for the Lunaris framework. Currently in development — coming soon.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="./" aria-label="Lunaris home">
+        <img src="assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+
+      <nav class="header-nav" aria-label="Primary">
+        <a href="docs/">Documentation</a>
+        <a href="atlas.html" class="is-active">Atlas</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#ecosystem">Ecosystem</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="docs/">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="soon-hero">
+    <div class="soon-hero__inner">
+      <img src="assets/img/logo-bg.png" alt="Lunaris logo">
+      <span class="badge-soon">Coming soon</span>
+      <h1><span class="accent">Atlas</span>, the database engine for Lunaris</h1>
+      <p>
+        A minimal, PDO-based data layer that keeps raw SQL in your hands — with an
+        optional query builder, Active Record models and DTO hydration when you want them.
+        The package is being rebuilt from scratch and its public API is not final yet.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn-primary" href="https://codeberg.org/lunarisphp" target="_blank" rel="noopener noreferrer">Follow development ↗</a>
+        <a class="btn btn-secondary" href="docs/">Read Lunaris Docs</a>
+      </div>
+
+      <div class="progress">
+        <div class="progress__label">
+          <span>Development status</span>
+          <span>Early stage · v0.2.2</span>
+        </div>
+        <div class="progress__track"><div class="progress__fill"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:20px">
+    <div class="section-head center">
+      <span class="eyebrow">Planned API</span>
+      <h2>What Atlas will bring</h2>
+      <p>A preview of the documented direction. Names and behaviour may change before the first stable release.</p>
+    </div>
+
+    <div class="grid-3">
+      <article class="feature-card">
+        <div class="ico">🗄️</div>
+        <h3>Raw SQL first</h3>
+        <p><code>Atlas::prepare(...)-&gt;args([...])-&gt;execute()</code> with prepared statements, named parameters and a rich result set.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🔍</div>
+        <h3>Probe query builder</h3>
+        <p>A fluent builder for select, insert, update and delete — where, orWhere, whereIn, joins, order, limit and offset.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🪐</div>
+        <h3>Planet models</h3>
+        <p>Active Record with <code>$table</code>, <code>$fillable</code>, <code>$hidden</code> and <code>$casts</code> — <code>find()</code>, <code>where()</code>, <code>save()</code>, <code>delete()</code>.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">💊</div>
+        <h3>Capsule DTOs</h3>
+        <p>Hydrate rows into typed objects with casting for int, float, bool, JSON, DateTime and more.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">♻️</div>
+        <h3>Query objects</h3>
+        <p>Reusable, testable SQL classes: extend <code>Query</code>, implement <code>sql()</code>, run it with <code>Atlas::run()</code>.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🔒</div>
+        <h3>Transactions &amp; drivers</h3>
+        <p>Closure-based transactions, insert-ID metadata, JSON-ready results — targeting MySQL, PostgreSQL and SQLite.</p>
+      </article>
+    </div>
+
+    <div class="callout callout--info" style="margin-top:34px">
+      <span class="callout__title">Status</span>
+      <p>
+        Atlas is at an early stage: the source tree has been reset and is being rewritten.
+        Nothing on this page is a commitment — treat it as a roadmap. Documentation for
+        Atlas will land here once the package stabilises.
+      </p>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div>
+        <a class="brand" href="./">
+          <img src="assets/img/logo-bg.png" alt="">
+          <span>Lunaris<em>.</em></span>
+        </a>
+        <p class="footer-about">A minimal, plain-PHP web framework built from scratch. Action-based, no magic, full control over your codebase.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Docs</h4>
+        <a href="docs/">Introduction</a>
+        <a href="docs/installation.html">Installation</a>
+        <a href="docs/routing.html">Routing</a>
+        <a href="docs/actions.html">Actions</a>
+        <a href="docs/views.html">Views</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Ecosystem</h4>
+        <a href="docs/">Lunaris Framework</a>
+        <a href="atlas.html">Atlas <span class="soon">Soon</span></a>
+        <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Repository ↗</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Community</h4>
+        <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Codeberg ↗</a>
+        <a href="https://codeberg.org/lunarisphp/lunaris/issues" target="_blank" rel="noopener noreferrer">Issue Tracker ↗</a>
+        <a href="https://codeberg.org/lunarisphp/lunaris/src/branch/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing ↗</a>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <span>© 2026 Lunaris · MIT License</span>
+      <span>Atlas docs are coming soon.</span>
+    </div>
+  </footer>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "./";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="assets/js/search-index.js"></script>
+  <script defer src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validation & Sessions — Lunaris Documentation</title>
+  <meta name="description" content="Validate request data with the fluent Validateable trait, and work with sessions and flash messages in Lunaris.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html" class="is-active">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Data & Validation</span></div>
+          <h1>Validation &amp; Sessions</h1>
+          <p class="lead">The <code>Validateable</code> trait adds a fluent validation DSL to any action, while native PHP sessions are wrapped in small static facades for storage and flash messages.</p>
+
+
+          <h2>Validation</h2>
+          <p>Use <code>vfield($key, $value)</code> and chain rules; each rule registers a first-wins error message.</p>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+use System\Http\Traits\Validateable;
+
+class RegisterAction extends Action {
+    use Validateable;
+
+    public function middlewares() { return []; }
+
+    public function main() {
+        $this-&gt;vfield("email", $this-&gt;input("email"))-&gt;required()-&gt;email();
+        $this-&gt;vfield("password", $this-&gt;input("password"))-&gt;required()-&gt;min_length(8);
+
+        if (!$this-&gt;validated()) {
+            return response()-&gt;status(422)-&gt;json(["errors" =&gt; $this-&gt;errors()]);
+        }
+
+        return response()-&gt;json(["ok" =&gt; true]);
+    }
+}</code></pre>
+
+          <h3>Available rules</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rule</th><th>Example</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>file()</code></td><td><code>-&gt;file()</code></td><td>Value must be a valid upload (<code>isfile()</code>: <code>UPLOAD_ERR_OK</code> + <code>is_uploaded_file</code>).</td></tr>
+                <tr><td><code>mimes([...])</code></td><td><code>-&gt;mimes(["image/png", "image/jpeg"])</code></td><td>File MIME must be in the list (sniffed with <code>finfo</code>).</td></tr>
+                <tr><td><code>max_size(MB)</code></td><td><code>-&gt;max_size(2)</code></td><td>Upload size limit in megabytes (chainable).</td></tr>
+                <tr><td><code>required()</code></td><td><code>-&gt;required()</code></td><td>Value must be set and non-empty (after trim).</td></tr>
+                <tr><td><code>email()</code></td><td><code>-&gt;email()</code></td><td>Valid email via <code>FILTER_VALIDATE_EMAIL</code>.</td></tr>
+                <tr><td><code>min_length(n)</code></td><td><code>-&gt;min_length(8)</code></td><td>String length must be ≥ n.</td></tr>
+                <tr><td><code>max_length(n)</code></td><td><code>-&gt;max_length(100)</code></td><td>String length must be ≤ n.</td></tr>
+                <tr><td><code>equals($x)</code></td><td><code>-&gt;equals($confirm)</code></td><td>Strict equality with another value.</td></tr>
+                <tr><td><code>custom($cb, $msg)</code></td><td><code>-&gt;custom(fn($v) =&gt; in_array($v, ["a","b"]))</code></td><td>User callback must return truthy.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Trait methods</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>error($key, $message)</code></td><td>Register an error (first-wins per key).</td></tr>
+                <tr><td><code>validated()</code></td><td>Runs an optional <code>validate()</code> method if defined, then returns <code>empty($errors)</code>.</td></tr>
+                <tr><td><code>errors()</code></td><td>Returns the error map <code>[key =&gt; message]</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Current caveats</span>
+            <ul>
+              <li><code>required()</code>, <code>email()</code>, <code>min_length()</code> and <code>max_length()</code> assume scalar input — they crash with a <code>TypeError</code> on <strong>array</strong> input (e.g. <code>email[]=</code>). Validate files with <code>file()</code>/<code>mimes()</code> and treat arrays as invalid before these rules.</li>
+              <li><code>required()</code> uses PHP’s <code>empty()</code> internally, so <code>"0"</code> / <code>0</code> / <code>""</code> count as <em>missing</em>.</li>
+              <li><code>file()</code> requires a real HTTP upload, so it fails under CLI/tests.</li>
+            </ul>
+          </div>
+
+          <h2>Sessions</h2>
+          <p>
+            Sessions use native PHP sessions, started in <code>public/index.php</code> with
+            hardened cookie parameters (<code>httponly</code> on, <code>samesite=Lax</code>, and
+            <code>secure</code> when the request is HTTPS) before <code>session_start()</code>.
+          </p>
+<pre><code class="language-php">use System\Support\Session;
+
+Session::put("user_id", 42);
+Session::get("user_id");     // 42
+Session::has("user_id");     // true
+Session::delete("user_id");</code></pre>
+          <div class="callout callout--info">
+            <span class="callout__title">Returns false, not null</span>
+            <p><code>Session::get()</code> returns <code>false</code> (not <code>null</code>) when a key is missing or empty.</p>
+          </div>
+
+          <h2>Flash messages</h2>
+          <p>Flash messages are JSON-encoded into the session and consumed on read:</p>
+<pre><code class="language-php">use System\Support\Flash;
+
+Flash::success(["Account created!"]);
+Flash::error(["Invalid password"]);
+Flash::warning(["Disk almost full"]);
+Flash::info(["New version available"]);</code></pre>
+          <p>Render them in a view — <code>@message</code> is replaced once per item, then the flash is cleared:</p>
+<pre><code class="language-php">&lt;?php
+Flash::render("success", '&lt;div class="alert alert-success"&gt;@message&lt;/div&gt;');
+Flash::render("error", '&lt;div class="alert alert-danger"&gt;@message&lt;/div&gt;');
+?&gt;</code></pre>
+          <p><code>render($type, $html, $escape = true)</code> escapes each message with <code>htmlspecialchars</code> by default — pass <code>false</code> as the third argument only when the message is trustworthy raw HTML.</p>
+
+          <h3>Raw flashes</h3>
+<pre><code class="language-php">Flash::set("just_saved", true);
+Flash::get("just_saved"); // true (consumed on read)</code></pre>
+
+          <h3>Flash in a redirect cycle</h3>
+<pre><code class="language-php">public function main() {
+    $this-&gt;vfield("name", $this-&gt;input("name"))-&gt;required()-&gt;min_length(2);
+
+    if (!$this-&gt;validated()) {
+        Flash::error($this-&gt;errors());
+        return response()-&gt;redirect(route("products.index"));
+    }
+
+    Flash::success(["Product created!"]);
+    return response()-&gt;redirect(route("products.index"));
+}</code></pre>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="views.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Views & Templates</span>
+            </a>
+            <a class="page-next" href="logging.html">
+              <span class="dir">Next →</span>
+              <span class="title">Logging & Errors</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

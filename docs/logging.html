@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logging & Errors — Lunaris Documentation</title>
+  <meta name="description" content="Write structured logs with the driver registry, and render custom 404/403/500 error pages in Lunaris.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html" class="is-active">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Operations</span></div>
+          <h1>Logging &amp; Errors</h1>
+          <p class="lead">The logging system uses a pluggable driver registry behind a static facade — while exceptions map to HTTP statuses and your own error views.</p>
+
+
+          <h2>Writing logs</h2>
+          <p><code>System\Logs\Log</code> is a static facade; a file driver is registered as <code>"file"</code> at boot and set as the default.</p>
+<pre><code class="language-php">use System\Logs\Log;
+
+Log::error("Something went wrong");
+Log::warning("Almost failed");
+Log::info("User logged in");
+Log::debug("This is a message");</code></pre>
+          <p>Logs are appended to <code>storage/logs/YYYY-MM-DD.log</code>:</p>
+<pre><code class="language-text">[2026-09-23 11:32:46] [DEBUG] : This is a message</code></pre>
+
+          <h3>Levels</h3>
+          <p><code>ERROR</code>, <code>WARNING</code>, <code>INFO</code>, <code>DEBUG</code> — defined in the <code>System\Logs\LogLevel</code> enum.</p>
+
+          <h3>Context</h3>
+          <p>Pass context arrays — scalar values are interpolated into <code>{key}</code> placeholders and the remainder is appended as JSON:</p>
+<pre><code class="language-php">Log::info("User {id} signed in", ["id" =&gt; 42, "ip" =&gt; "127.0.0.1"]);
+// [2026-09-23 12:00:00] [INFO] : User 42 signed in {"id":42,"ip":"127.0.0.1"}</code></pre>
+
+          <h3>Channels</h3>
+          <p>Per-driver channels via <code>__callStatic</code> (the driver name becomes the method):</p>
+<pre><code class="language-php">Log::file()-&gt;debug("via the file channel");
+
+// or explicitly
+Log::channel("file")-&gt;info("also via the file channel");</code></pre>
+
+          <h3>Custom drivers</h3>
+          <p>Implement <code>System\Logs\LogDriver</code> and register it:</p>
+<pre><code class="language-php">use System\Logs\Log;
+use System\Logs\LogDriver;
+use System\Logs\LogLevel;
+
+class SyslogDriver implements LogDriver {
+    public function write(LogLevel $level, string $message, array $context = []): void {
+        syslog(LOG_INFO, "[$level-&gt;value] $message");
+    }
+}
+
+Log::extend("syslog", new SyslogDriver());
+Log::setDefaultDriver("syslog");</code></pre>
+
+          <h2>Exceptions</h2>
+          <p>The exception hierarchy is deliberately tiny:</p>
+<pre><code class="language-text">Throwable → Exception → LunarException (System\Exceptions)
+                          ├── AppException         (500 Internal Server Error)
+                          ├── NotFoundException    (404 Not found)
+                          └── ForbiddenException   (403 Forbidden)</code></pre>
+          <p><code>LunarException</code> carries an HTTP status via the <code>Error</code> enum:</p>
+<pre><code class="language-text">NOT_FOUND = 404, INTERNAL_SERVER_ERROR = 500, FORBIDDEN = 403</code></pre>
+
+          <h3>Throwing helpers</h3>
+<pre><code class="language-php">notfound();                 // throw new NotFoundException()
+notfound("No such page");   // custom message
+forbidden();
+error();                    // 500
+error("Database down");</code></pre>
+
+          <h2>Custom error pages</h2>
+          <p>Configure views for each status in <code>config/vars.php</code> (or via environment):</p>
+<pre><code class="language-php">"errors" =&gt; [
+    "notfound" =&gt; "errors/404",     // renders views/errors/404.php
+    "forbidden" =&gt; "errors/403",    // renders views/errors/403.php
+    "exception" =&gt; "errors/500",    // renders views/errors/500.php
+],</code></pre>
+          <p>The error pages receive <code>message</code>, <code>trace</code> and <code>exception</code> variables:</p>
+<pre><code class="language-php">&lt;?php $template-&gt;extends("layouts/app") ?&gt;
+
+&lt;?php $template-&gt;section("content") ?&gt;
+    &lt;h1&gt;Something went wrong&lt;/h1&gt;
+    &lt;p&gt;&lt;?= htmlspecialchars($message) ?&gt;&lt;/p&gt;
+&lt;?php $template-&gt;endSection(); ?&gt;</code></pre>
+
+          <div class="callout callout--danger">
+            <span class="callout__title">Production safety</span>
+            <p>
+              Error views receive an unescaped <code>trace</code> and the exception object —
+              only enable error pages in production if you accept stack traces being served, or
+              strip <code>trace</code>/<code>exception</code> before rendering.
+            </p>
+          </div>
+
+          <div class="callout callout--info">
+            <span class="callout__title">Fallback behaviour</span>
+            <p>
+              If no error page is configured, the raw exception message is printed. The HTTP
+              status code is sent only when a configured error view is rendered; the
+              plain-message fallback currently responds with <code>200</code>.
+            </p>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="validation.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Validation & Sessions</span>
+            </a>
+            <a class="page-next" href="cli.html">
+              <span class="dir">Next →</span>
+              <span class="title">Console (CLI)</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

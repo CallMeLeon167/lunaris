@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Console (CLI) — Lunaris Documentation</title>
+  <meta name="description" content="Run and register console commands with the lunar CLI: argument parsing, STDIN prompts and ANSI output helpers.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html" class="is-active">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Operations</span></div>
+          <h1>Console (CLI)</h1>
+          <p class="lead">The <code>lunar</code> script is the framework’s console. It bootstraps <code>.env</code>, config and the log driver before running a command — so helpers are available inside your commands.</p>
+
+
+          <h2>Running commands</h2>
+<pre><code class="language-bash">php lunar key:generate</code></pre>
+          <p>
+            The CLI bootstraps <code>.env</code>, config and the log driver before running a
+            command, so <code>env()</code>, <code>config()</code> and <code>Log::*</code> are all
+            available inside your commands. Routes are <em>not</em> loaded — the console stops
+            right before HTTP dispatch.
+          </p>
+
+          <h2>Built-in commands</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Command</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>key:generate</code></td><td>Generates a new Defuse ASCII-safe <code>APP_KEY</code> and writes it to <code>.env</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Adding a command</h2>
+          <p>Register command classes in <code>routes/console.php</code>, mapping name → class:</p>
+<pre><code class="language-php">&lt;?php
+
+use System\Cli\Commands\KeyGenerate;
+use App\Commands\MakeUser;
+
+return [
+    "key:generate" =&gt; KeyGenerate::class,
+    "make:user" =&gt; MakeUser::class,
+];</code></pre>
+          <p>Create the command class extending <code>System\Cli\Command</code>:</p>
+<pre><code class="language-php">&lt;?php
+
+namespace App\Commands;
+
+use System\Cli\Command;
+
+class MakeUser extends Command {
+    public function main(): void {
+        $name = $this-&gt;arg("name");                    // --name=foo
+        $force = $this-&gt;flag("force");                 // --force
+        $positional = $this-&gt;args()[0] ?? null;        // bare positional argument
+        $answer = $this-&gt;ask("User email");            // prompt on stdin
+
+        $this-&gt;info("Creating user...");
+        // ... work ...
+        $this-&gt;success("User created");
+    }
+}</code></pre>
+          <p>Run it:</p>
+<pre><code class="language-bash">php lunar make:user --name=alice --force</code></pre>
+
+          <h2><code>Command</code> helpers</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>arg($key, $default)</code></td><td>Value of a <code>--key=value</code> argument.</td></tr>
+                <tr><td><code>has($key)</code></td><td>Whether a key was passed.</td></tr>
+                <tr><td><code>flag($key)</code></td><td>True only if <code>--key</code> was passed as a bare flag.</td></tr>
+                <tr><td><code>args()</code></td><td>All parsed arguments.</td></tr>
+                <tr><td><code>ask($question)</code></td><td>Prompt and read a line from STDIN.</td></tr>
+                <tr><td><code>success($msg)</code> / <code>error($msg)</code> / <code>info($msg)</code></td><td>ANSI-colored output (green / red / blue).</td></tr>
+                <tr><td><code>$this-&gt;basePath</code></td><td>The project root path (injected).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Argument parsing supports <code>--key=value</code>, bare <code>--flag</code> (→ <code>true</code>), and positional strings (→ numeric indexes).</p>
+
+          <div class="callout">
+            <span class="callout__title">Error handling</span>
+            <p>The console dispatcher reports unknown commands and bad arguments in ANSI red; <code>main()</code> has no return value — print your result and you’re done.</p>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="logging.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Logging & Errors</span>
+            </a>
+            <a class="page-next" href="support.html">
+              <span class="dir">Next →</span>
+              <span class="title">Support & Example</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

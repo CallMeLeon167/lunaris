@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lunaris — A minimal, plain-PHP web framework</title>
+  <meta name="description" content="Official documentation for the Lunaris PHP framework: action-based routing, plain PHP views, no magic, full control over your codebase.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- ============ Header ============ -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="./" aria-label="Lunaris home">
+        <img src="assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+
+      <nav class="header-nav" aria-label="Primary">
+        <a href="docs/">Documentation</a>
+        <a href="atlas.html">Atlas</a>
+        <a href="#features">Features</a>
+        <a href="#ecosystem">Ecosystem</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="docs/">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ Hero ============ -->
+  <section class="hero">
+    <div class="hero__inner">
+      <span class="hero__badge"><span class="dot"></span> v0.2.0 · PHP 8.3+ · MIT</span>
+
+      <img class="hero__logo" src="assets/img/logo-bg.png" alt="Lunaris logo">
+
+      <h1>Welcome to <span class="accent">Lunaris</span></h1>
+
+      <p class="hero__tagline">
+        A minimal, plain-PHP framework built from scratch. Action-based routing,
+        PHP-native views, and zero magic — full control over your codebase.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn-primary" href="docs/">Read the Docs →</a>
+        <a class="btn btn-secondary" href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">View Repository ↗</a>
+      </div>
+
+      <div class="install-block">
+        <div class="install-block__bar">
+          <span>Terminal</span>
+          <button class="codeblock__copy" type="button">Copy</button>
+        </div>
+<pre><code>git clone &lt;your-repo-url&gt; lunaris &amp;&amp; cd lunaris
+composer install
+php lunar key:generate</code></pre>
+      </div>
+
+      <div class="hero__meta">
+        <div class="meta-card">
+          <div class="label">Philosophy</div>
+          <div class="value">No magic, plain <code>new</code></div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Architecture</div>
+          <div class="value">Action-based, no controllers</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Source</div>
+          <div class="value">~33 readable files</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Features ============ -->
+  <section class="section" id="features">
+    <div class="section-head center">
+      <span class="eyebrow">Why Lunaris</span>
+      <h2>Everything you need. Nothing you didn’t ask for.</h2>
+      <p>Lunaris is small enough to read in a weekend and complete enough to ship a real application.</p>
+    </div>
+
+    <div class="grid-3">
+      <article class="feature-card">
+        <div class="ico">⚡</div>
+        <h3>Action-based</h3>
+        <p>Every route maps to a single action class with a tiny contract: <code>middlewares()</code> and <code>main()</code>. No controllers, no guessing.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🧠</div>
+        <h3>No magic</h3>
+        <p>No auto-wiring, no service discovery, no compiled templates. Plain <code>new</code>, static facades, and native PHP all the way down.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">📄</div>
+        <h3>Plain PHP views</h3>
+        <p>An output-buffering engine with layouts, sections, partials and components — but the template is still just a PHP file.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🛡️</div>
+        <h3>Secure by default</h3>
+        <p>CSRF middleware, bcrypt hashing, AES-256-GCM encryption, hardened session cookies and validated hosts come built in.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🧩</div>
+        <h3>Onion middlewares</h3>
+        <p>Guard any action with an ordered middleware pipeline. Short-circuit requests, inspect the raw request, pass it on.</p>
+      </article>
+
+      <article class="feature-card">
+        <div class="ico">🖥️</div>
+        <h3>First-class CLI</h3>
+        <p>The <code>lunar</code> console boots env, config and logging — register your own commands in <code>routes/console.php</code>.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ Lifecycle strip ============ -->
+  <section class="section section--tight">
+    <div class="section-head center">
+      <span class="eyebrow">Request lifecycle</span>
+      <h2>From request to response in eight steps</h2>
+      <p>Understand the whole framework by following one request through the system.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="codeblock" style="margin:0">
+        <div class="codeblock__bar"><span class="codeblock__lang">Lifecycle</span></div>
+        <pre><code class="language-text">public/index.php
+    └─&gt; Bootstrap::configure()
+        └─&gt; Container::loadRoutes()
+            └─&gt; Route::dispatch()
+                └─&gt; Route::executeHandler()
+                    └─&gt; Middleware pipeline
+                        └─&gt; Action-&gt;main($params)
+                            └─&gt; Echoed to the client</code></pre>
+      </div>
+
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:14px">
+        <p style="margin:0;color:var(--muted);font-size:15.5px">
+          Each phase is a short, readable class you can open and modify.
+          Any <code>Throwable</code> thrown along the way is caught once, mapped to
+          <strong>404 / 403 / 500</strong>, and rendered through your configured error view.
+        </p>
+        <a class="btn btn-secondary btn-sm" href="docs/architecture.html" style="align-self:flex-start">Explore the architecture →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Atlas banner ============ -->
+  <section class="section" id="ecosystem" style="padding-bottom:0">
+    <div class="atlas-banner">
+      <div>
+        <span class="badge-soon">Coming soon</span>
+        <h2>Atlas — the database engine for Lunaris</h2>
+        <p>
+          A lightweight PDO layer with raw SQL control, a fluent query builder (Probe),
+          Active Record models (Planet), reusable query objects and DTO hydration (Capsule).
+          Currently being rebuilt from scratch.
+        </p>
+        <div class="hero__actions" style="justify-content:flex-start;margin-top:22px">
+          <a class="btn btn-primary" href="atlas.html">Preview Atlas</a>
+        </div>
+      </div>
+      <div class="atlas-pills">
+        <span>Raw SQL</span>
+        <span>Probe query builder</span>
+        <span>Planet models</span>
+        <span>Capsule DTOs</span>
+        <span>Transactions</span>
+        <span>MySQL · PostgreSQL · SQLite</span>
+        <span>Prepared statements</span>
+        <span>JSON-ready results</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="section" style="padding-top:0">
+    <div class="cta">
+      <h2>Start building with Lunaris</h2>
+      <p>Clone the repository, generate your app key, and render your first action in under two minutes.</p>
+      <div class="hero__actions">
+        <a class="btn btn-primary" href="docs/">Read the Docs</a>
+        <a class="btn btn-secondary" href="docs/installation.html">Installation Guide</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div>
+        <a class="brand" href="./">
+          <img src="assets/img/logo-bg.png" alt="">
+          <span>Lunaris<em>.</em></span>
+        </a>
+        <p class="footer-about">A minimal, plain-PHP web framework built from scratch. Action-based, no magic, full control over your codebase.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Docs</h4>
+        <a href="docs/">Introduction</a>
+        <a href="docs/installation.html">Installation</a>
+        <a href="docs/routing.html">Routing</a>
+        <a href="docs/actions.html">Actions</a>
+        <a href="docs/views.html">Views</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Ecosystem</h4>
+        <a href="docs/">Lunaris Framework</a>
+        <a href="atlas.html">Atlas <span class="soon">Soon</span></a>
+        <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Repository ↗</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Community</h4>
+        <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Codeberg ↗</a>
+        <a href="https://codeberg.org/lunarisphp/lunaris/issues" target="_blank" rel="noopener noreferrer">Issue Tracker ↗</a>
+        <a href="https://codeberg.org/lunarisphp/lunaris/src/branch/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing ↗</a>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <span>© 2026 Lunaris · MIT License</span>
+      <span>Built with plain HTML, CSS &amp; JS — just like the framework it documents.</span>
+    </div>
+  </footer>
+
+  <!-- ============ Search modal ============ -->
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "./";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="assets/js/search-index.js"></script>
+  <script defer src="assets/js/main.js"></script>
+</body>
+</html>

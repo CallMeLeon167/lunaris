@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Installation — Lunaris Documentation</title>
+  <meta name="description" content="Install the Lunaris PHP framework: requirements, composer install, .env setup, app key generation and Docker.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html" class="is-active">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Getting Started</span></div>
+          <h1>Installation</h1>
+          <p class="lead">Get a fresh Lunaris application running locally in a few commands — with Composer, a required <code>.env</code> file and your application encryption key.</p>
+
+
+          <h2>Requirements</h2>
+          <ul>
+            <li><strong>PHP 8.3+</strong> — the codebase relies on enums, <code>match</code> expressions and anonymous classes.</li>
+            <li><strong><a href="https://getcomposer.org/" target="_blank" rel="noopener noreferrer">Composer</a></strong> for autoloading and dependencies.</li>
+            <li><strong>Apache with <code>mod_rewrite</code></strong>, or any server that can rewrite everything to <code>public/index.php</code>.</li>
+            <li><strong>Optional:</strong> Docker or Podman for the containerized environment.</li>
+          </ul>
+
+          <h2>Install with Composer</h2>
+          <p>Clone the repository and install the dependencies:</p>
+<pre><code class="language-bash"># 1. Clone the repository
+git clone &lt;your-repo-url&gt; lunaris
+cd lunaris
+
+# 2. Install dependencies
+composer install
+
+# 3. Create your .env file (based on the example below)
+#    .env is required — the application loads it at boot
+
+# 4. Generate the application encryption key
+php lunar key:generate
+
+# 5. Point Apache (or your web server) at the public/ directory
+#    or run the Docker environment:
+docker compose -f docker/docker-compose.yml up --build
+# Then open http://localhost:8080</code></pre>
+
+          <h2>Create your <code>.env</code></h2>
+          <p>
+            The <code>.env</code> file is loaded at boot with <code>vlucas/phpdotenv</code>
+            (immutable mode). It is <strong>required</strong> — the application will not boot
+            without it. Keys are read through the <code>env()</code> helper.
+          </p>
+<pre><code class="language-dotenv"># Defuse ASCII-safe key — generate with: php lunar key:generate
+APP_KEY=def0000042cec0...
+APP_NAME="Lunaris"
+APP_URL=http://lunaris</code></pre>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Never commit .env</span>
+            <p>
+              <code>.env</code> holds your <code>APP_KEY</code>. The root
+              <code>.htaccess</code> already denies direct web access to it and to
+              <code>*.log</code> files — keep it out of version control too.
+            </p>
+          </div>
+
+          <h2>Generate the application key</h2>
+          <p>
+            The <code>key:generate</code> command creates a new Defuse ASCII-safe key and
+            writes (or replaces) <code>APP_KEY=</code> in your <code>.env</code>:
+          </p>
+<pre><code class="language-bash">php lunar key:generate</code></pre>
+          <p>
+            The key is consumed by <code>System\Security\Crypt</code> for AES-256-GCM
+            encryption. A missing or empty <code>APP_KEY</code> throws an
+            <code>InvalidArgumentException</code> the first time you encrypt something.
+          </p>
+
+          <h2>Web server setup</h2>
+          <p>
+            The document root must point at the <strong><code>public/</code></strong> directory —
+            never at the project root. <code>public/index.php</code> is the front controller, and
+            <code>public/.htaccess</code> rewrites every request that is not a real file to it.
+          </p>
+<pre><code class="language-text">public/
+├── index.php      # front controller (entry point)
+├── .htaccess      # rewrite non-files to index.php
+└── logo.png</code></pre>
+
+          <h2>Using Docker / Podman</h2>
+          <p>The <code>docker/</code> directory provides a complete environment:</p>
+          <ul>
+            <li><strong>PHP 8.3 + Apache</strong> container on port <code>8080</code>, with the project bind-mounted into <code>/var/www/html</code>.</li>
+            <li><strong>MariaDB 10.11</strong> container (<code>mysql</code>) on port <code>3306</code>, database <code>lunarisdb</code>, root password <code>root</code>, with a named volume for persistence.</li>
+          </ul>
+<pre><code class="language-bash">docker compose -f docker/docker-compose.yml up --build
+
+# Podman users:
+podman-compose -f docker/podman-compose.yml up --build</code></pre>
+
+          <div class="callout callout--info">
+            <span class="callout__title">Note</span>
+            <p>
+              The <code>podman-compose.yml</code> currently hard-codes the bind-mount path, so
+              adjust it for your machine. There is also no <code>.dockerignore</code> yet —
+              <code>composer install</code> is not run during the image build, so the container
+              only works because compose bind-mounts the project over the copied tree.
+            </p>
+          </div>
+
+          <h2>Verify the install</h2>
+          <p>
+            With the server running, open <code>http://localhost:8080</code>. The
+            <code>GET /</code> route points at the sample <code>HelloWorld</code> action, which
+            renders the welcome view:
+          </p>
+<pre><code class="language-php">&lt;?php
+
+use App\Actions\HelloWorld;
+use System\Routing\Route;
+
+Route::get("/", HelloWorld::class)-&gt;name("home");</code></pre>
+          <p>If you see the welcome page, your installation is working.</p>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="index.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Introduction</span>
+            </a>
+            <a class="page-next" href="architecture.html">
+              <span class="dir">Next →</span>
+              <span class="title">Architecture</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

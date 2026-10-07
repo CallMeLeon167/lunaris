@@ -1,0 +1,102 @@
+/* ============================================================
+   Prism theme — "Lunaris Night"
+   Derived from the Lunaris welcome palette (#6d4aff family)
+   ============================================================ */
+
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #e7e3ff;
+  background: none;
+  text-shadow: none;
+  tab-size: 4;
+  hyphens: none;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-height: 1.68;
+  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-size: 13.6px;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6f68a0;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #a49dc9;
+}
+
+.token.namespace {
+  opacity: 0.75;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #ff7eb6;
+}
+
+.token.boolean,
+.token.number {
+  color: #82aaff;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #a5f3a1;
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: #c4b5ff;
+  background: rgba(109, 74, 255, 0.09);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #b39dff;
+  font-weight: 600;
+}
+
+.token.function,
+.token.class-name {
+  color: #8be9fd;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #ffd580;
+}
+
+.token.bold,
+.token.important {
+  font-weight: 700;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+/* keep inline <code> out of the theme (handled by style.css) */
+:not(pre) > code[class*="language-"] {
+  color: inherit;
+  background: inherit;
+}

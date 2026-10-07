@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Actions & Responses — Lunaris Documentation</title>
+  <meta name="description" content="Write Lunaris actions: the middlewares()/main() contract, reading request input, the Str value object and building responses.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html" class="is-active">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Core</span></div>
+          <h1>Actions &amp; Responses</h1>
+          <p class="lead">There are no controllers. Every route points to one <strong>action</strong> — a class extending <code>SystemHttpAction</code> with a two-method contract.</p>
+
+
+          <h2>The action contract</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Required</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>main()</code></td><td>yes</td><td>Called on every successful request, after all middlewares pass. Receives the route params. Return value is echoed.</td></tr>
+                <tr><td><code>middlewares()</code></td><td>yes</td><td>Returns an array of middleware class names that guard this action.</td></tr>
+                <tr><td><code>boot()</code></td><td>no</td><td>Runs <strong>before</strong> the middleware pipeline. Use for setup shared by the action.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+<pre><code class="language-php">&lt;?php
+
+namespace App\Actions;
+
+use System\Http\Action;
+use System\Logs\Log;
+
+class HelloWorld extends Action {
+    public function boot() {
+        // e.g. shared setup
+    }
+
+    public function middlewares() {
+        return []; // no middlewares for this action
+    }
+
+    public function main() {
+        Log::debug("This is a message");
+        return response()
+                    -&gt;view("welcome")
+                    -&gt;render();
+    }
+}</code></pre>
+
+          <h2>Reading the request</h2>
+          <p>The <code>Action</code> base class captures the incoming request so you can read input directly:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>all()</code></td><td>Merged query + body/data array (<code>$_GET</code> + <code>$_POST</code> + JSON body). Body wins on key collisions.</td></tr>
+                <tr><td><code>input($key, $default)</code></td><td>A value from <code>$_POST</code> / the JSON body.</td></tr>
+                <tr><td><code>get($key, $default)</code></td><td>A value from <code>$_GET</code> (query string).</td></tr>
+                <tr><td><code>data($key)</code></td><td>Returns a chainable <code>System\Support\Str</code> wrapper.</td></tr>
+                <tr><td><code>header($key, $default)</code></td><td>A request header (case-insensitive). With no args, returns all headers.</td></tr>
+                <tr><td><code>$this-&gt;files</code></td><td>The <code>$_FILES</code> array.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+<pre><code class="language-php">public function main() {
+    $name = $this-&gt;input("name");                 // from body
+    $page = $this-&gt;get("page", 1);                // from query string
+    $token = $this-&gt;header("X-CSRF-TOKEN");       // request header
+    $all = $this-&gt;all();                          // everything merged
+
+    $length = $this-&gt;data("length")-&gt;int()-&gt;value();  // chainable string handling
+
+    return response()-&gt;json([
+        "name" =&gt; $name,
+        "page" =&gt; $page,
+    ]);
+}</code></pre>
+
+          <h3>The <code>Str</code> value object</h3>
+          <p><code>Action::data($key)</code> returns a <code>System\Support\Str</code> object with chainable methods:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>trim()</code></td><td><code>trim()</code> the value.</td></tr>
+                <tr><td><code>sanitize()</code></td><td><code>htmlspecialchars($value, ENT_QUOTES, "UTF-8")</code>.</td></tr>
+                <tr><td><code>int()</code></td><td>Cast to integer.</td></tr>
+                <tr><td><code>value()</code></td><td>Return the final value.</td></tr>
+              </tbody>
+            </table>
+          </div>
+<pre><code class="language-php">$this-&gt;data("email")-&gt;trim()-&gt;sanitize()-&gt;value();
+$this-&gt;data("age")-&gt;int()-&gt;value(); // 25</code></pre>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Known caveat</span>
+            <p><code>sanitize()</code> raises a <code>TypeError</code> when the underlying value is <code>null</code> — guard with <code>?? null</code> or an <code>if</code> before chaining it on optional fields.</p>
+          </div>
+
+          <h2>Responses</h2>
+          <p>Build responses with the <code>response()</code> helper (a <code>System\Http\Response</code> instance). Responses are fluent and, for data responses, send (echo) immediately.</p>
+
+          <h3>JSON</h3>
+<pre><code class="language-php">return response()-&gt;json(["data" =&gt; $data, "ok" =&gt; true]);</code></pre>
+
+          <h3>Text &amp; HTML</h3>
+<pre><code class="language-php">return response()-&gt;text("This is plain text");
+return response()-&gt;html("&lt;h1&gt;Hello World&lt;/h1&gt;");</code></pre>
+
+          <h3>Views</h3>
+          <p><code>response()-&gt;view()</code> returns a view renderer — call <code>render()</code> to produce the output:</p>
+<pre><code class="language-php">return response()
+            -&gt;view("welcome")                // views/welcome.php
+            -&gt;render();
+
+// with data
+return response()
+            -&gt;view("post", ["title" =&gt; "My Post"])
+            -&gt;render();</code></pre>
+          <div class="callout">
+            <span class="callout__title">No view() helper</span>
+            <p>There is <strong>no</strong> global <code>view()</code> helper — always go through <code>response()-&gt;view(...)-&gt;render()</code>.</p>
+          </div>
+
+          <h3>Redirects</h3>
+<pre><code class="language-php">return response()-&gt;redirect("/dashboard");       // 302
+return response()-&gt;redirect("/login", 301);
+return response()-&gt;back();                        // HTTP_REFERER, or "/"</code></pre>
+
+          <h3>Status &amp; headers</h3>
+<pre><code class="language-php">return response()
+            -&gt;status(201)
+            -&gt;header("X-Custom", "value")
+            -&gt;json(["created" =&gt; true]);</code></pre>
+          <p><code>send()</code> calls <code>http_response_code()</code>, sets each registered header and echoes the body. <code>json/text/html</code> all send automatically.</p>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Views are different</span>
+            <p>
+              <code>response()-&gt;view()</code> returns a <code>ViewRender</code>, so any
+              <code>status()</code>/<code>header()</code> configured on the response is ignored.
+              Set the status on the renderer instead — and only the three
+              <code>Error</code> enum values are accepted:
+            </p>
+<pre style="margin-top:10px"><code class="language-php">return response()-&gt;view("errors/404")
+            -&gt;status(\System\Exceptions\Error::NOT_FOUND)
+            -&gt;render();</code></pre>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="routing.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Routing</span>
+            </a>
+            <a class="page-next" href="middlewares.html">
+              <span class="dir">Next →</span>
+              <span class="title">Middlewares & Security</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

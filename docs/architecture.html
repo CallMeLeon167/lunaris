@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture — Lunaris Documentation</title>
+  <meta name="description" content="Understand the Lunaris directory structure and the request lifecycle from public/index.php to the action's main() method.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html" class="is-active">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Getting Started</span></div>
+          <h1>Architecture</h1>
+          <p class="lead">Lunaris has no hidden runtime. This page walks through the project layout and follows a single request through every layer of the framework.</p>
+
+
+          <h2>Directory structure</h2>
+<pre><code class="language-text">lunaris/
+├── .env                  # Environment variables (APP_KEY, APP_NAME, APP_URL)
+├── .htaccess             # Front-controller rewrite + blocks .env / *.log
+├── bootstrap.php         # Wires config, env, root path, logs, routes
+├── composer.json         # PSR-4: System\ → system/, App\ → app/
+├── helpers.php           # Global helpers placeholder (autoloaded)
+├── lunar                 # CLI entry point (php lunar &lt;command&gt;)
+├── app/
+│   ├── Actions/          # Actions (no controllers!)
+│   │   └── HelloWorld.php
+│   └── Middlewares/      # Your custom middlewares (create as needed)
+├── config/
+│   └── vars.php          # Central configuration file
+├── docker/
+│   ├── Dockerfile        # PHP 8.3 + Apache + extensions
+│   ├── Dockerfile.mysql  # MariaDB 10.11
+│   ├── docker-compose.yml
+│   └── podman-compose.yml
+├── public/               # The web root
+│   ├── index.php         # Front controller (entry point)
+│   └── .htaccess
+├── routes/
+│   ├── web.php           # HTTP routes
+│   └── console.php       # CLI command registry
+├── storage/
+│   ├── app/              # General application storage
+│   └── logs/             # Daily log files (YYYY-MM-DD.log)
+├── system/               # The framework itself (namespace System\)
+└── views/                # View templates
+    ├── layouts/          # Layout templates (views/layouts/*.php)
+    ├── errors/           # Optional custom 403/404/500 pages
+    ├── primitives/       # Reusable inline partials (create as needed)
+    └── components/       # Components with slot support (create as needed)</code></pre>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Folder</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>app/</code></td><td>Application code — one class per route in <code>Actions/</code>, plus your own <code>Middlewares/</code>.</td></tr>
+                <tr><td><code>config/</code></td><td><code>vars.php</code>, the config array read by <code>config()</code>.</td></tr>
+                <tr><td><code>public/</code></td><td>Web root: front controller, rewrite rules, static assets.</td></tr>
+                <tr><td><code>routes/</code></td><td><code>web.php</code> for HTTP routes, <code>console.php</code> for the command map.</td></tr>
+                <tr><td><code>storage/</code></td><td>App files and daily log files.</td></tr>
+                <tr><td><code>system/</code></td><td>The framework source (<code>System\</code> namespace): Cli, Exceptions, Http, Logs, Routing, Security, Support, View.</td></tr>
+                <tr><td><code>views/</code></td><td>Plain-PHP templates, layouts, error pages, primitives, components.</td></tr>
+                <tr><td><code>vendor/</code></td><td>Composer dependencies (<code>vlucas/phpdotenv</code>, <code>defuse/php-encryption</code>, …).</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Request lifecycle</h2>
+          <p>A request flows through the system like this:</p>
+<pre><code class="language-text">Browser / CLI
+    │
+    ▼
+public/index.php                1. Creates storage/logs, wires PHP error log,
+    │                              starts the session, loads vendor + bootstrap
+    ▼
+Bootstrap::configure()          2. Config::init() → Container-&gt;loadEnv()
+    │                              → Root::registerRoot() → loadLogs()
+    ▼
+Container::loadRoutes()         3. require routes/web.php, then dispatch
+    │
+    ▼
+Route::dispatch()               4. Match REQUEST_METHOD + REQUEST_URI
+    │                              against registered routes (regex, first-match-wins)
+    ▼
+Route::executeHandler()         5. new Action → boot() → middleware pipeline
+    │                              → main($params)
+    ▼
+Middleware pipeline             6. Each middleware may short-circuit or pass on
+    │                              ($next($request))
+    ▼
+Action-&gt;main()                  7. Return a response / view render / string
+    │
+    ▼
+Echoed to the client            8. Result is output (or rendered by the view engine)</code></pre>
+
+          <h3>The front controller</h3>
+          <p><code>public/index.php</code> does the boring-but-important setup before the framework ever runs:</p>
+<pre><code class="language-php">&lt;?php
+
+$logDir = __DIR__ . '/../storage/logs';
+
+if (!is_dir($logDir)) {
+    mkdir($logDir, 0755, true);
+}
+
+$logFile = $logDir . '/' . date('Y-m-d') . '.log';
+
+ini_set("display_errors", 0);
+ini_set("log_errors", 1);
+ini_set("error_log", $logFile);
+
+session_set_cookie_params([
+    'lifetime' =&gt; 0,
+    'path' =&gt; '/',
+    'secure' =&gt; !empty($_SERVER['HTTPS']) &amp;&amp; $_SERVER['HTTPS'] !== 'off',
+    'httponly' =&gt; true,
+    'samesite' =&gt; 'Lax',
+]);
+
+session_start();
+
+require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../bootstrap.php";
+
+(new Bootstrap(__DIR__ . "/../"))-&gt;configure();</code></pre>
+          <ul>
+            <li><strong>Error display is off</strong>, errors are logged to <code>storage/logs/Y-m-d.log</code>.</li>
+            <li><strong>Session cookies are hardened</strong> — <code>httponly</code>, <code>samesite=Lax</code>, <code>secure</code> on HTTPS — before <code>session_start()</code>.</li>
+            <li><strong>Bootstrap::configure()</strong> loads config, env, the root path, log drivers, and finally the routes.</li>
+          </ul>
+
+          <h3>The console lifecycle</h3>
+          <p>
+            The <code>lunar</code> script runs <code>configureConsole()</code> instead — the same
+            boot sequence but it <em>stops before</em> loading routes, so commands never dispatch
+            HTTP. <code>env()</code>, <code>config()</code> and <code>Log::*</code> are all
+            available inside commands.
+          </p>
+
+          <h2>Error handling</h2>
+          <p>
+            Any <code>Throwable</code> thrown during load or dispatch is caught once in
+            <code>Container::loadRoutes()</code> and passed to <code>Route::handle($e)</code>,
+            which maps it to an HTTP status (404 / 403 / 500) and renders a configured error
+            page — or prints the raw message if none is configured.
+          </p>
+          <div class="callout callout--info">
+            <span class="callout__title">Custom error pages</span>
+            <p>Point <code>errors.notfound</code>, <code>errors.forbidden</code> and <code>errors.exception</code> at views like <code>errors/404</code>. See <a href="logging.html">Logging &amp; Errors</a>.</p>
+          </div>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="installation.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Installation</span>
+            </a>
+            <a class="page-next" href="configuration.html">
+              <span class="dir">Next →</span>
+              <span class="title">Configuration</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

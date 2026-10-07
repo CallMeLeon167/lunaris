@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Views & Templates — Lunaris Documentation</title>
+  <meta name="description" content="Render plain-PHP views in Lunaris: layouts, sections, partials, primitives, components with slots and path resolution.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html" class="is-active">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Front-end</span></div>
+          <h1>Views &amp; Templates</h1>
+          <p class="lead">Views are plain PHP files under <code>views/</code>. There is no template-compilation step — rendering uses output buffering and <code>include</code> inside a scoped closure.</p>
+
+
+          <h2>The <code>$template</code> facade</h2>
+          <p>Every view gets a <code>$template</code> variable — a <code>View</code> facade exposing:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>extends($layout)</code></td><td>Declare the parent layout (e.g. <code>"layouts/app"</code>).</td></tr>
+                <tr><td><code>section($name)</code> / <code>endSection()</code></td><td>Open/close a named section (for layouts).</td></tr>
+                <tr><td><code>slot($name)</code></td><td>Print a stored section (used inside layouts).</td></tr>
+                <tr><td><code>includes($path, $args)</code></td><td>Render a partial from <code>views/</code>.</td></tr>
+                <tr><td><code>primitive($path, $args)</code></td><td>Render a partial from <code>views/primitives/</code>.</td></tr>
+                <tr><td><code>component($name, $props)</code> / <code>endComponent()</code></td><td>Render a component with slot capture.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Layouts &amp; sections</h2>
+          <p><code>views/layouts/app.php</code>:</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Lunaris Layout&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;main&gt;
+        &lt;?php $template-&gt;slot("content") ?&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+          <p><code>views/welcome.php</code>:</p>
+<pre><code class="language-php">&lt;?php $template-&gt;extends("layouts/app") ?&gt;
+
+&lt;?php $template-&gt;section("content") ?&gt;
+
+&lt;h1&gt;Welcome to Lunaris&lt;/h1&gt;
+
+&lt;p&gt;Current Route: &lt;?= route() ?&gt;&lt;/p&gt;
+&lt;p&gt;Current Url: &lt;?= url() ?&gt;&lt;/p&gt;
+
+&lt;?php $template-&gt;endSection(); ?&gt;</code></pre>
+
+          <div class="callout">
+            <span class="callout__title">Data first</span>
+            <p>Pass data from an action with <code>response()-&gt;view("post", ["title" =&gt; "My Post"])-&gt;render()</code> — the array is extracted into the view scope.</p>
+          </div>
+
+          <h2>Partial includes</h2>
+          <p><code>views/partials/nav.php</code> is included from another view with:</p>
+<pre><code class="language-php">&lt;?php $template-&gt;includes("partials/nav") ?&gt;
+
+&lt;?php $template-&gt;includes("partials/user", ["user" =&gt; $user]) ?&gt;</code></pre>
+
+          <h2>Primitives</h2>
+          <p>Small inline partials live in <code>views/primitives/</code>. <code>views/primitives/button.php</code>:</p>
+<pre><code class="language-php">&lt;button class="btn"&gt;&lt;?= $label ?&gt;&lt;/button&gt;</code></pre>
+<pre><code class="language-php">&lt;?php $template-&gt;primitive("button", ["label" =&gt; "Save"]) ?&gt;
+
+// dot paths resolve to directories:
+// "forms.button" → views/primitives/forms/button.php</code></pre>
+
+          <h2>Components with slots</h2>
+          <p><code>views/components/card.php</code>:</p>
+<pre><code class="language-php">&lt;div class="card"&gt;
+    &lt;h3&gt;&lt;?= $title ?&gt;&lt;/h3&gt;
+    &lt;div class="card-body"&gt;&lt;?= $slot ?&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          <p>Everything between <code>component()</code> and <code>endComponent()</code> becomes the <code>$slot</code>:</p>
+<pre><code class="language-php">&lt;?php $template-&gt;component("card", ["title" =&gt; "Hello"]) ?&gt;
+    &lt;p&gt;This content becomes the slot.&lt;/p&gt;
+&lt;?php $template-&gt;endComponent() ?&gt;</code></pre>
+          <p>Props and the <code>$slot</code> variable are available inside the component template; the <code>$template</code> facade is injected there too.</p>
+
+          <h2>Path resolution</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Call</th><th>Resolved path</th></tr></thead>
+              <tbody>
+                <tr><td><code>response()-&gt;view("welcome")</code></td><td><code>views/welcome.php</code></td></tr>
+                <tr><td><code>$template-&gt;includes("partials/nav")</code></td><td><code>views/partials/nav.php</code></td></tr>
+                <tr><td><code>$template-&gt;primitive("forms.button")</code></td><td><code>views/primitives/forms/button.php</code></td></tr>
+                <tr><td><code>$template-&gt;component("card")</code></td><td><code>views/components/card.php</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Dots are translated to directory separators for primitives and components. A missing file throws an <code>AppException</code>.</p>
+
+          <h2>View statuses</h2>
+          <p>Render an error view with the right HTTP status by calling <code>status()</code> on the renderer:</p>
+<pre><code class="language-php">return response()
+            -&gt;view("errors/404")
+            -&gt;status(\System\Exceptions\Error::NOT_FOUND)
+            -&gt;render();</code></pre>
+          <p>Only the three <code>Error</code> enum values (<code>NOT_FOUND</code>, <code>FORBIDDEN</code>, <code>INTERNAL_SERVER_ERROR</code>) are supported for views.</p>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="middlewares.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Middlewares & Security</span>
+            </a>
+            <a class="page-next" href="validation.html">
+              <span class="dir">Next →</span>
+              <span class="title">Validation & Sessions</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>

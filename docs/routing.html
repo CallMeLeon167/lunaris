@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Routing — Lunaris Documentation</title>
+  <meta name="description" content="Define HTTP routes in Lunaris: verbs, URI parameters, named routes, URL generation and current-route helpers.">
+  <meta name="theme-color" content="#6d4aff">
+  <link rel="icon" type="image/png" href="../assets/img/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/prism-lunaris.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="brand" href="../" aria-label="Lunaris home">
+        <img src="../assets/img/logo-bg.png" alt="">
+        <span>Lunaris<em>.</em></span>
+      </a>
+      <nav class="header-nav" aria-label="Primary">
+        <a href="index.html" class="is-active">Documentation</a>
+        <a href="../atlas.html">Atlas</a>
+        <a href="../index.html#features">Features</a>
+        <a href="../index.html#ecosystem">Ecosystem</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" type="button" data-search-open aria-label="Search documentation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="st-label">Search docs</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <a class="btn btn-primary btn-sm" href="installation.html">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="nav-group">
+        <span class="nav-group__title">Getting Started</span>
+        <a href="index.html">Introduction</a>
+        <a href="installation.html">Installation</a>
+        <a href="architecture.html">Architecture</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Core</span>
+        <a href="configuration.html">Configuration</a>
+        <a href="routing.html" class="is-active">Routing</a>
+        <a href="actions.html">Actions &amp; Responses</a>
+        <a href="middlewares.html">Middlewares &amp; Security</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Front-end</span>
+        <a href="views.html">Views &amp; Templates</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Data &amp; Validation</span>
+        <a href="validation.html">Validation &amp; Sessions</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Operations</span>
+        <a href="logging.html">Logging &amp; Errors</a>
+        <a href="cli.html">Console (CLI)</a>
+        <a href="support.html">Support &amp; Example</a>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group__title">Ecosystem</span>
+        <a href="../atlas.html">Atlas <span class='nav-soon'>SOON</span></a>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="docs-main">
+      <main class="docs-content">
+        <article class="doc-body">
+          <div class="page-meta"><span class="tag">Core</span></div>
+          <h1>Routing</h1>
+          <p class="lead">All HTTP routes are defined in a single file — <code>routes/web.php</code>. Each route maps one URI pattern to one action class.</p>
+
+
+          <h2>Defining routes</h2>
+<pre><code class="language-php">&lt;?php
+
+use App\Actions\HomeAction;
+use App\Actions\AboutAction;
+use System\Routing\Route;
+
+Route::get("/", HomeAction::class)-&gt;name("home");
+Route::get("/about/{id}/get/{text}", AboutAction::class)-&gt;name("about");</code></pre>
+
+          <h3>Supported verbs</h3>
+<pre><code class="language-php">Route::get($uri, $action);
+Route::post($uri, $action);
+Route::put($uri, $action);
+Route::patch($uri, $action);
+Route::delete($uri, $action);</code></pre>
+          <p>Each verb is a static factory over a shared <code>Route::add($method, $uri, $handler)</code> registration.</p>
+
+          <h3>Rules &amp; behavior</h3>
+          <ul>
+            <li>The <code>$action</code> must be the <strong>fully-qualified class name</strong> of an action class.</li>
+            <li>If the class doesn’t exist, an <code>AppException</code> is thrown <strong>at registration time</strong> — fail fast.</li>
+            <li><code>{param}</code> segments are compiled to regex <code>([^/]+)</code> captures; the matched values (URL-decoded) are passed to <code>main()</code>.</li>
+            <li>Matching is <strong>first-match-wins</strong> within the same HTTP verb. No match → <code>NotFoundException</code>.</li>
+            <li>Duplicate route names throw an <code>AppException</code>.</li>
+            <li>Routes are static and global — register them at the top level of <code>routes/web.php</code>.</li>
+          </ul>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Fail fast</span>
+            <p>Because action classes are validated during registration, a typo in a class name blows up as soon as routes load — not on the first request that happens to hit it.</p>
+          </div>
+
+          <h2>Route parameters</h2>
+          <p>Placeholders in the URI become an array passed to <code>main($params)</code>:</p>
+<pre><code class="language-php">// routes/web.php
+Route::get("/about/{id}/get/{text}", AboutAction::class)-&gt;name("about");
+
+// app/Actions/AboutAction.php
+public function main(array $params) {
+    $params["id"];   // "45"
+    $params["text"]; // "hello"
+}</code></pre>
+          <p>The current route’s parameters are also available anywhere via <code>Route::params()</code>:</p>
+<pre><code class="language-php">Route::params(); // [ "id" =&gt; 45, "text" =&gt; "hello" ]</code></pre>
+
+          <h2>Named routes</h2>
+          <p>Give a route a name, then generate URLs from it instead of hard-coding paths:</p>
+<pre><code class="language-php">Route::get("/about/{id}/get/{text}", AboutAction::class)-&gt;name("about");
+
+// Generate a URL
+route("about", ["id" =&gt; 45, "text" =&gt; "hello"]); // "/about/45/get/hello"</code></pre>
+
+          <div class="callout callout--warning">
+            <span class="callout__title">Provide every parameter</span>
+            <p>Unmatched <code>{placeholders}</code> are left as-is in generated URLs — always pass every param the route declares.</p>
+          </div>
+
+          <h3>Current route helpers</h3>
+<pre><code class="language-php">route();                   // "home", "about", ... or null
+route_is("home");          // true if the current route is "home"
+route_in(["home", "about"]);// true if current route is in the list
+url();                     // "http://example.com/current/path"</code></pre>
+
+          <h2>Redirects and status codes</h2>
+          <p>Redirecting between named routes is a common pattern in actions:</p>
+<pre><code class="language-php">return response()-&gt;redirect(route("products.index"));
+return response()-&gt;redirect("/login", 301);   // permanent
+return response()-&gt;back();                    // HTTP_REFERER, or "/"</code></pre>
+          <p>See <a href="actions.html">Actions &amp; Responses</a> for the full response API.</p>
+
+          <h2>How dispatch works</h2>
+<pre><code class="language-text">Route::dispatch()
+  ├─ match REQUEST_METHOD + REQUEST_URI against registered routes
+  │   (compiled regex, first-match-wins)
+  └─ Route::executeHandler()
+      ├─ new Action
+      ├─ boot()            (optional setup)
+      ├─ middlewares()      → MiddlewarePipeline (onion)
+      └─ main($params)      → result is echoed</code></pre>
+          <p>
+            <code>Route</code> is a <code>final</code> class holding static state (routes, named
+            routes, current route). That’s a non-issue under standard Apache/PHP-FPM
+            per-request processes.
+          </p>
+
+
+          <nav class="page-nav">
+            <a class="page-prev" href="configuration.html">
+              <span class="dir">← Previous</span>
+              <span class="title">Configuration</span>
+            </a>
+            <a class="page-next" href="actions.html">
+              <span class="dir">Next →</span>
+              <span class="title">Actions & Responses</span>
+            </a>
+          </nav>
+
+          <p class="page-edit">Part of the Lunaris documentation · <a href="https://codeberg.org/lunarisphp/lunaris" target="_blank" rel="noopener noreferrer">Source on Codeberg</a> · MIT License</p>
+        </article>
+      </main>
+    </div>
+
+    <aside class="docs-toc" id="toc">
+      <div class="docs-toc__title">On this page</div>
+      <nav id="tocNav"></nav>
+    </aside>
+  </div>
+
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="search-modal__panel">
+      <div class="search-modal__input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-modal__input" id="searchInput" type="text" placeholder="Search the documentation…" autocomplete="off" spellcheck="false">
+        <span class="search-modal__esc">Esc</span>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+      <div class="search-modal__foot">
+        <span><b>↑↓</b> navigate</span>
+        <span><b>↵</b> open</span>
+        <span><b>esc</b> close</span>
+      </div>
+    </div>
+  </div>
+
+  <script>window.LUNARIS_BASE = "../";</script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dotenv.min.js"></script>
+  <script defer src="../assets/js/search-index.js"></script>
+  <script defer src="../assets/js/main.js"></script>
+</body>
+</html>
